@@ -15,9 +15,6 @@ Runs suivants : charge depuis disque (<1 min) puis évalue.
 Pour ré-entraîner : supprimer les .pkl ou FORCE_RETRAIN = True.
 """
 
-import sys
-from pathlib import Path
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 import pickle
 import numpy as np
 from pathlib import Path
@@ -45,7 +42,7 @@ EVAL_BATCH_SIZE  = 256    # trajectoires par mini-batch — ajuster selon RAM
 SEED             = 42
 
 # Entraînement — K=64 pour tous les algos NN
-K_TRAIN        = 64
+K_TRAIN        = 128
 N_EPOCHS_MAX   = 5000
 EARLY_STOP_PAT = 500
 BATCH_SIZE     = 128
@@ -111,14 +108,26 @@ base = dict(
     batch_size=BATCH_SIZE,
     emb_dim=EMB_DIM,
 )
-mcd_kwargs  = dict(**base,
+
+"""
+mcd_kwargs  = dict(**base, lr_init=1e-3,  lr_peak=5e-3, lr_end=5e-5,  K_mcd=K_TRAIN)
+cmcd_kwargs = dict(**base, lr_init=2e-4,  lr_peak=1e-3, lr_end=1e-5,
+                   grad_clip=0.5, K_cmcd=K_TRAIN)
+led_kwargs  = dict(**base, lr_init=1e-3,  lr_peak=5e-3, lr_end=5e-5,
+                   exact_div=False, n_probes=4, grad_clip=1.0,
+                   loss_type="work_variance", K_led=K_TRAIN)
+
+"""
+
+
+mcd_kwargs = dict(**base,
     lr_init=1e-3, lr_peak=5e-3, lr_end=5e-5,
     K_mcd=K_TRAIN,
 )
 
 cmcd_kwargs = dict(**base,
-    lr_init=5e-4, lr_peak=3e-3, lr_end=1e-5,   # LR augmenté prudemment
-    grad_clip=0.3,                               # clip plus serré
+    lr_init=5e-4, lr_peak=3e-3, lr_end=1e-5,   # LR augmenté
+    grad_clip=0.3,                               # clip réduit
     K_cmcd=K_TRAIN,
 )
 
@@ -126,10 +135,9 @@ led_kwargs = dict(**base,
     lr_init=1e-3, lr_peak=5e-3, lr_end=5e-5,
     exact_div=False, n_probes=8,                 # plus de probes
     grad_clip=1.0,
-    loss_type="work_variance",
+    loss_type="work_mean",                       # changer ici
     K_led=K_TRAIN,
 )
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # ÉTAPE 2 — Entraînement

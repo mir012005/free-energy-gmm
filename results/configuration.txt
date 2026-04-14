@@ -1,0 +1,90 @@
+=== HYPERPARAMÈTRES DE L'EXPÉRIENCE ===
+
+--- CONFIGURATION AIS ---
+gmm0 : {'means': array([[-2.]]), 'covs': array([[[1.]]]), 'weights': array([1.])}
+gmm1 : {'means': array([[2.]]), 'covs': array([[[0.25]]]), 'weights': array([1.])}
+T : 1.0
+n_steps : 1000
+n_samples : 10000
+seed : 42
+n_epochs : 10000
+batch_size_train : 128
+batch_size_val : 10000
+lr_init : 0.005
+patience : 999999
+emb_dim : 20
+clip_norm : inf
+weight_decay : 0.0
+dt_train : 0.001
+dt_eval : 0.0001
+n_steps_train : 1000
+n_steps_eval : 10000
+schedule_train : Array de dimension (1001,)
+schedule_eval : Array de dimension (10001,)
+
+--- CONFIGURATION MCD ---
+gmm0 : {'means': array([[-2.]]), 'covs': array([[[1.]]]), 'weights': array([1.])}
+gmm1 : {'means': array([[2.]]), 'covs': array([[[0.25]]]), 'weights': array([1.])}
+T : 1.0
+n_steps : 1000
+n_samples : 10000
+seed : 42
+n_epochs : 5000
+batch_size_train : 128
+batch_size_val : 10000
+lr_init : 0.005
+patience : 999999
+emb_dim : 20
+clip_norm : inf
+weight_decay : 0.0
+dt_train : 0.001
+dt_eval : 0.0001
+n_steps_train : 1000
+n_steps_eval : 10000
+schedule_train : Array de dimension (1001,)
+schedule_eval : Array de dimension (10001,)
+
+--- CONFIGURATION CMCD ---
+gmm0 : {'means': array([[-2.]]), 'covs': array([[[1.]]]), 'weights': array([1.])}
+gmm1 : {'means': array([[2.]]), 'covs': array([[[0.25]]]), 'weights': array([1.])}
+T : 1.0
+n_steps : 1000
+n_samples : 10000
+seed : 42
+n_epochs : 5000
+batch_size_train : 128
+batch_size_val : 10000
+lr_init : 0.005
+patience : 999999
+emb_dim : 20
+clip_norm : inf
+weight_decay : 0.0
+dt_train : 0.001
+dt_eval : 0.0001
+n_steps_train : 1000
+n_steps_eval : 10000
+schedule_train : Array de dimension (1001,)
+schedule_eval : Array de dimension (10001,)
+
+--- CONFIGURATION LED ---
+gmm0 : {'means': array([[-2.]]), 'covs': array([[[1.]]]), 'weights': array([1.])}
+gmm1 : {'means': array([[2.]]), 'covs': array([[[0.25]]]), 'weights': array([1.])}
+T : 1.0
+n_steps : 1000
+n_samples : 10000
+seed : 42
+n_epochs : 500
+batch_size_train : 128
+batch_size_val : 10000
+lr_init : 0.005
+patience : 999999
+emb_dim : 20
+clip_norm : inf
+weight_decay : 0.0
+dt_train : 0.001
+dt_eval : 0.0001
+n_steps_train : 1000
+n_steps_eval : 10000
+schedule_train : Array de dimension (1001,)
+schedule_eval : Array de dimension (10001,)
+

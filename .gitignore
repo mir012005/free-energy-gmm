@@ -1,40 +1,9 @@
-# Python
 __pycache__/
-*.py[cod]
+*.pyc
 *.pyo
-*.pyd
-.Python
-*.egg-info/
-dist/
-build/
-.eggs/
-
-# Virtual environments
-venv/
-env/
-.env/
-.venv/
-
-# Results — too large for git (model weights + plots)
-results/
-
-# Jupyter
-.ipynb_checkpoints/
-*.ipynb
-
-# OS
 .DS_Store
-Thumbs.db
-desktop.ini
-
-# IDE
-.vscode/
-.idea/
-*.sublime-project
-*.sublime-workspace
-
-# Trained model weights (large binary files)
+runs/
 *.pkl
-
-# Keep the assets folder (README images)
-!assets/
+*.npz
+*.egg-info/
+.venv/

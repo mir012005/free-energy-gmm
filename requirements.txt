@@ -1,16 +1,7 @@
-# Free Energy GMM — dependencies
-# Tested on Python 3.10, Windows 10/11 and Linux
-#
-# IMPORTANT: jax 0.5.x has DLL issues on Windows.
-# Use the versions below for guaranteed compatibility.
-#
-# Install:
-#   pip install -r requirements.txt
-
 jax==0.4.30
 jaxlib==0.4.30
 optax==0.2.3
-numpy>=1.22,<2.3
-scipy>=1.9
-matplotlib>=3.6
-tqdm>=4.64
+numpy>=1.24
+scipy>=1.10
+matplotlib>=3.7
+tqdm>=4.65
