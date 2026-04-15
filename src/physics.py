@@ -65,11 +65,12 @@ class PipelineConfig:
     def __post_init__(self):
         assert self.gmm0.dim == self.gmm1.dim, "π_0 et π_1 doivent avoir la même dimension"
 
-        self.n_steps_train = int(self.T / self.dt_train)
-        self.n_steps_eval = int(self.T / self.dt_eval)
+        self.n_steps_train = int(round(self.T / self.dt_train))
+        self.n_steps_eval = int(round(self.T / self.dt_eval))
         
         self.schedule_train = np.linspace(0.0, 1.0, self.n_steps_train + 1)
         self.schedule_eval  = np.linspace(0.0, 1.0, self.n_steps_eval  + 1)
+        
 
     @property
     def dim(self) -> int:

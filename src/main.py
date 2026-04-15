@@ -29,7 +29,12 @@ def compute_metrics(works, name):
     ratio = float(e_mW.mean())
     var_ratio = float(e_mW.var(ddof=1))
     dF = float(-np.log(ratio + 1e-300))
-    var_dF = var_ratio / (ratio**2 + 1e-300)
+
+    # La vraie variance de l'estimateur nécessite de diviser par N
+    N = len(w_finite)
+    var_dF = (var_ratio / N) / (ratio**2 + 1e-300)
+    #var_dF = var_ratio / (ratio**2 + 1e-300)
+
     var_W = float(w_finite.var(ddof=1))
     
     return {"name": name, "ratio": ratio, "var_ratio": var_ratio, "dF": dF, "var_dF": var_dF, "var_W": var_W}
@@ -115,7 +120,14 @@ def generate_all_plots(algos_data, true_dF, gmm1, n_samples, output_dir):
     # FIG 4: Convergence
     fig4 = plt.figure(figsize=(10, 5))
     for name, data in algos_data.items():
+        est = get_running_estimators(data["works"])
+        plt.plot(np.arange(1, len(est) + 1), est, color=data["color"], label=name, alpha=0.8) # <-- Adaptatif !
+    """
+    fig4 = plt.figure(figsize=(10, 5))
+    for name, data in algos_data.items():
         plt.plot(np.arange(1, n_samples + 1), get_running_estimators(data["works"]), color=data["color"], label=name, alpha=0.8)
+    """
+
     plt.axhline(true_dF, color='k', linestyle='dashed', linewidth=2, label="Cible théorique")
     plt.title("Convergence de l'estimateur d'Énergie Libre", fontweight='bold')
     plt.ylim(true_dF - 0.5, true_dF + 1.0)
@@ -168,7 +180,7 @@ def main():
     os.makedirs(run_dir, exist_ok=True)
 
     print(f"\n📂 Dossier de sauvegarde créé : {run_dir}")
-    """
+
     # 1. Configuration (Paramètres stricts du professeur)
     cfg_base = PipelineConfig(
         gmm0=GMMParams.single_gaussian(mean=[-2.0], cov=[[1.0]]),
@@ -181,62 +193,11 @@ def main():
     
     configs = {
         "AIS": cfg_base,
-        "MCD": dataclasses.replace(cfg_base, n_epochs=5000),
+        "MCD": dataclasses.replace(cfg_base, n_epochs=5000, dt_eval=1e-3),
         "CMCD": dataclasses.replace(cfg_base, n_epochs=5000),
         "LED": dataclasses.replace(cfg_base, n_epochs=500)
     }
-    """
-    # ==========================================
-    # MISSION DE LA NUIT : RING OF GAUSSIANS 2D
-    # ==========================================
-    n_modes = 8
-    radius = 4.0
-    means_1, covs_1, weights_1 = [], [], []
 
-    # Création des 8 Gaussiennes en cercle
-    for i in range(n_modes):
-        angle = i * (2 * math.pi / n_modes)
-        means_1.append([radius * math.cos(angle), radius * math.sin(angle)])
-        covs_1.append([[0.2, 0.0], [0.0, 0.2]]) # Petites variances pour bien séparer les modes
-        weights_1.append(1.0 / n_modes)
-
-    gmm0_2d = GMMParams(
-        means=jnp.array([[0.0, 0.0]]),
-        covs=jnp.array([[[1.0, 0.0], [0.0, 1.0]]]),
-        weights=jnp.array([1.0])
-    )
-    
-    gmm1_2d = GMMParams(
-        means=jnp.array(means_1),
-        covs=jnp.array(covs_1),
-        weights=jnp.array(weights_1)
-    )
-
-    # 1. Configuration Massive pour la nuit
-    cfg_base = PipelineConfig(
-        gmm0=gmm0_2d,
-        gmm1=gmm1_2d,
-        T=1.0, 
-        seed=42, 
-        n_samples=20000,      # 20 000 particules pour des graphiques 2D sublimes
-        dt_train=1e-3, 
-        dt_eval=1e-4,
-        batch_size_train=256, # Batch plus gros pour stabiliser le gradient en 2D
-        batch_size_val=10000, 
-        emb_dim=32,           # Un cerveau un peu plus gros pour la 2D
-        clip_norm=float('inf'), 
-        weight_decay=0.0, 
-        patience=999999,
-        lr_init=0.005         # Le fameux LR corrigé !
-    )
-    
-    # Entraînements très longs pour la nuit (Environ 1h30 à 2h au total sur GPU T4)
-    configs = {
-        "AIS": cfg_base,
-        "MCD": dataclasses.replace(cfg_base, n_epochs=15000),
-        "CMCD": dataclasses.replace(cfg_base, n_epochs=15000),
-        "LED": dataclasses.replace(cfg_base, n_epochs=3000) # Toujours un peu moins car le Jacobien est lourd
-    }
     save_configurations(configs, os.path.join(run_dir, "configuration.txt"))
 
     # 2. Exécution des algorithmes
@@ -260,7 +221,8 @@ def main():
     print_table(metrics, run_dir)
 
     # 5. Génération des graphiques
-    true_dF = -np.log(0.5)
+    ref_ratio = 0.5
+    true_dF = -np.log(ref_ratio)
     generate_all_plots(algos_data, true_dF, cfg_base.gmm1, cfg_base.n_samples, run_dir)
 
 if __name__ == "__main__":

@@ -54,6 +54,7 @@ def _train_loop(loss_fn, params, cfg: PipelineConfig, desc="Entraînement"): # O
     )
     opt_state = optimizer.init(params) # Initialise la mémoire de l'optimiseur
     grad_fn = jax.jit(jax.grad(loss_fn, argnums=1)) # Calcule automatiquement la dérivée de la fonction de perte par rapport aux poids
+    eval_loss_fn = jax.jit(loss_fn)
     key = jax.random.PRNGKey(cfg.seed)
     loss_history = []
     best_loss, patience_ctr = float("inf"), 0
@@ -67,20 +68,33 @@ def _train_loop(loss_fn, params, cfg: PipelineConfig, desc="Entraînement"): # O
         params = optax.apply_updates(params, updates) # Applique la modification aux params.
         
         if epoch % 50 == 0: # Gère l'affichage, sauvegarde best_loss, et déclenche early stop si le réseau n'apprend plus rien après le temps imparti par la patience.
-            current_loss = float(loss_fn(seeds, params))
+            
+            #current_loss = float(loss_fn(seeds, params))
+            current_loss = float(eval_loss_fn(seeds, params))
             pbar.set_postfix(loss=f"{current_loss:.3f}")
             loss_history.append(current_loss)
-            
+
+
+            best_loss, patience_ctr = float("inf"), 0
+            best_params = params # Initialisation
+            if current_loss < best_loss:
+                best_loss, patience_ctr = current_loss, 0
+                best_params = params # On sauvegarde l'état optimal
+            else:
+                patience_ctr += 1
+            """
             if current_loss < best_loss:
                 best_loss, patience_ctr = current_loss, 0
             else:
                 patience_ctr += 1
-                
+            """ 
+
             if patience_ctr >= cfg.patience // 50:
                 pbar.set_description(f"{desc} [early stop @ {epoch+1}]")
                 break
                 
-    return params, loss_history
+    #return params, loss_history
+    return best_params, loss_history
 
 def _batched_eval(compute_eval_fn, cfg: PipelineConfig): # Génère 10 000 trajectoires finales pour les graphiques, en découpant le travail en petits lots (RAM)
     """Évalue W et compile les trajectoires complètes."""
@@ -137,7 +151,7 @@ def train_and_eval_mcd(cfg: PipelineConfig):
             def step(carry, k):
                 q, acc, key = carry # acc = elbo accumulé
                 key, sk = jax.random.split(key)
-                gq = grad_V(q, sched[k+1]) # utilisée 2 fois calculée 1 fois
+                gq = grad_V(q, sched[k]) # utilisée 2 fois calculée 1 fois
                 q_new = q - dt * gq + jnp.sqrt(2.0 * dt) * jax.random.normal(sk, (cfg.dim,))
                 
                 log_f = -jnp.sum((q_new - q + dt * gq)**2) / (4.0 * dt) # c'est redondant mais c'est plus lisible
@@ -149,9 +163,8 @@ def train_and_eval_mcd(cfg: PipelineConfig):
                     k_train = k
 
                 score = apply_fn(params, q_new, k_train)
-                #score = jnp.clip(score, -5.0, 5.0)
 
-                mean_b = q_new + dt * grad_V(q_new, sched[k+1]) + 2.0 * dt * score
+                mean_b = q_new + dt * grad_V(q_new, sched[k]) + 2.0 * dt * score
                 log_b = -jnp.sum((q - mean_b)**2) / (4.0 * dt) # proba que q = q_prédite
                 
                 return (q_new, acc + log_b - log_f, key), q_new
@@ -207,7 +220,8 @@ def train_and_eval_cmcd(cfg: PipelineConfig):
                 if is_eval:
                     k_retour = jnp.minimum(jnp.floor((k + 1) * dt / cfg.dt_train).astype(int), cfg.n_steps_train - 1)
                 else:
-                    k_retour = k + 1
+                    # k_retour = k + 1
+                    k_retour = jnp.minimum(k + 1, cfg.n_steps_train - 1)
                 u_qnew = apply_fn(params, q_new, k_retour)
                 mean_b = q_new - dt * grad_V(q_new, sched[k+1]) - dt * Lp * u_qnew # Signe (-) validé
                 log_b = -jnp.sum((q - mean_b)**2) / (4.0 * dt)
