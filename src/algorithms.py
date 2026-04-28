@@ -58,6 +58,7 @@ def _train_loop(loss_fn, params, cfg: PipelineConfig, desc="Entraînement"): # O
     key = jax.random.PRNGKey(cfg.seed)
     loss_history = []
     best_loss, patience_ctr = float("inf"), 0
+    best_params = params
 
     pbar = tqdm(range(cfg.n_epochs), desc=desc)
     for epoch in pbar:
@@ -74,9 +75,6 @@ def _train_loop(loss_fn, params, cfg: PipelineConfig, desc="Entraînement"): # O
             pbar.set_postfix(loss=f"{current_loss:.3f}")
             loss_history.append(current_loss)
 
-
-            best_loss, patience_ctr = float("inf"), 0
-            best_params = params # Initialisation
             if current_loss < best_loss:
                 best_loss, patience_ctr = current_loss, 0
                 best_params = params # On sauvegarde l'état optimal
@@ -88,7 +86,6 @@ def _train_loop(loss_fn, params, cfg: PipelineConfig, desc="Entraînement"): # O
             else:
                 patience_ctr += 1
             """ 
-
             if patience_ctr >= cfg.patience // 50:
                 pbar.set_description(f"{desc} [early stop @ {epoch+1}]")
                 break
