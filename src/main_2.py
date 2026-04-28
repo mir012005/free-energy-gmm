@@ -193,7 +193,7 @@ def main():
     
     configs = {
         "AIS": cfg_base,
-        "MCD": dataclasses.replace(cfg_base, n_epochs=15000),
+        "MCD": dataclasses.replace(cfg_base, n_epochs=15000, dt_eval=1e-3),
         "CMCD": dataclasses.replace(cfg_base, n_epochs=15000),
         "LED": dataclasses.replace(cfg_base, n_epochs=5000, patience=500)
     }
