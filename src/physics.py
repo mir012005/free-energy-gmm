@@ -18,6 +18,7 @@ class GMMParams:
         self.weights = np.asarray(self.weights, dtype=float)
 
         assert self.means.shape[0] == self.covs.shape[0] == self.weights.shape[0], "Dimensions k incohérentes"
+        assert self.covs.shape[1] == self.covs.shape[2] == self.means.shape[1], "Les matrices de covariance doivent être carrées (d x d)"
         assert np.isclose(self.weights.sum(), 1.0), "Les poids doivent sommer à 1"
 
     @property
