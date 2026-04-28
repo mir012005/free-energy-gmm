@@ -28,9 +28,11 @@ class GMMParams:
     def single_gaussian(cls, mean: npt.NDArray, cov: npt.NDArray) -> "GMMParams":
         """Crée un GMM à une seule composante."""
         mean = np.atleast_1d(mean)
-        cov  = np.atleast_2d(cov)
+        cov = np.asarray(cov)
         if cov.ndim == 1:
             cov = np.diag(cov)
+        else:
+            cov = np.atleast_2d(cov)
         return cls(means=mean[None, :], covs=cov[None, :, :], weights=np.array([1.0]))
 
 @dataclass
